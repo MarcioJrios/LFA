@@ -206,8 +206,8 @@ for a in texto:
 						if str(estadoProd) == str(item):
 							estadoProd = estadoProd+1
 							break
-					AddDict('*'+estadoProd) #cria o novo estado como final
-					insertInto(regra, charac, srt(estadoProd))
+					AddDict('*'+str(estadoProd)) #cria o novo estado como final
+					insertInto(regra, charac, str(estadoProd))
 					estadoA = estadoProd
 					estadoProd = estadoProd+1
 
