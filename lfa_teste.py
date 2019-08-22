@@ -1,7 +1,10 @@
+import csv
+
 arq = open('lfa.txt', 'r')
 texto = arq.readlines()
 arq.close()
 
+print(texto)
 simbolo = [] #lista de simbolos da linguagem
 lista = [] #armazena os tokens em forma de string
 incial = []
@@ -258,5 +261,149 @@ for item in estados: #para cada estado criado, executa
 	i = i+1
 
 printTable() #exibe o AFD
+estadosAlcancaveis = ['0']
+
+def rInalcancaveis():
+	i = '0'
+	cont = 0
+	estadoCont = 0
+	while(estadoCont != len(estadosAlcancaveis)): # Localizacao dos estados alcancaveis
+		for item in simbolo:
+			value = estados2[cont].get(item[0])
+			if(value in estados):
+				if(str(value) not in estadosAlcancaveis):
+					estadosAlcancaveis.append(value)
+				else:
+					pass
+			if('*'+str(value) in estados):
+				if(str(value) not in estadosAlcancaveis):
+					estadosAlcancaveis.append(value)
+				else:
+					pass
+			#if
+			#if(item.get() in estados):
+			#	estadosAlcancaveis.append(item)
+		if(estadoCont + 1 == len(estadosAlcancaveis)):
+			estadoCont = estadoCont + 1
+		else:
+			j = 0
+			for item in estados:
+				item = item.replace('*', '')
+				if(item == estadosAlcancaveis[estadoCont+1]):
+					cont = j
+				j = j+1
+			estadoCont = estadoCont + 1
+
+	inalcancaveis = [] # estados inalcancaveis
+	for item in estados: # Eliminacao dos estados que nao estao na lista dos alcancaveis
+		inalcancaveis.append(item)
+	for item in estados:
+		aux = item.replace('*', '')
+		if aux in estadosAlcancaveis:
+			inalcancaveis.remove(item)
+
+	for item in inalcancaveis:# Eliminacao dos estados que nao estao na lista dos alcancaveis
+		j = 0
+		for item2 in estados:
+			if item2 == item:
+				estados.remove(item2)
+				del estados2[j]
+				break
+			j = j + 1
+
+	if(len(inalcancaveis) > 0):
+		return 'false'
+	else:
+		return 'true'
+
+def Reach(reach, vivos, item, index):
+	for simb in simbolo:
+		if(estados2[index].get(simb[0]) != None):
+			aux = estados2[index].get(simb[0])
+			if(('*'+aux) in estados):
+				if item not in vivos:
+					vivos.append(item)
+			else:
+				if aux not in reach:
+					reach.append(aux)
+		else:
+			pass
+
+def eliminacaoInuteis():
+	#eliminacao de inalcancaveis
+	r = rInalcancaveis()
+	while(r == 'false'):
+		a = 'true'
+		r = rInalcancaveis()
+
+	#eliminacao de mortos
+	vivos = []
+	tam = len(estados)
+	i = 0
+	for item in estados:
+		reach = ['0']
+		if('*' != item[0]):
+			j = 0 #contador associado ao tamanho da lista reach
+			h = i #contador associado a lista reach
+			while(j < len(reach)):
+				v = estados[h]
+				Reach(reach, vivos, item, h)
+				if(j < len(reach)-1):
+					v = reach[j+1]
+					h = 0
+					for item2 in estados:
+						if item2 == v:
+							break
+						else:
+							h = h+1
+				j = j + 1
+		else:
+			if item not in vivos:
+				vivos.append(item)
+
+		i = i + 1
+	
+	mortos = []
+	for item in estados:
+		if item not in vivos:
+			mortos.append(item)
+
+	if(len(mortos)>0):
+		a = 'true'
+
+	i = 0
+	for dictn in estados2: # Eliminacao das producoes envolvendo mortos
+		for simb in simbolo:
+			if estados2[i].get(simb[0]) in mortos:
+				estados2[i].update({simb[0]: None})
+		i = i+1
+
+	while(len(mortos)>0):
+		i = 0
+		for item in estados:
+			if item == mortos[0]:
+				del estados[i]
+				del estados2[i]
+				break
+			else:
+				i = i+1
+		del mortos[0]
+
+a = 'true'
+while(a == 'true'):
+	a = 'false'
+	eliminacaoInuteis()
+
+#Etapa lexica
+arquivo = [] #sentencas do arquivo de entrada
+with open('CodEntrada.txt', newline='') as inputfile:
+	for row in csv.reader(inputfile):
+		row = row[0].split(' ')
+		for item in row:
+			arquivo.append(item)
+
+
+print(arquivo)
+print(estadosAlcancaveis)
 print(simbolo)
-print(estados)
+printTable()
